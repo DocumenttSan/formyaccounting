@@ -1,0 +1,30 @@
+[
+    {
+        "button_name": "้ะพด่ทาีมท่กทม่",
+        "column_type": "details",
+        "description": "ทพดัมทปดพทป",
+        "account_number": "ืทัพทหพกทพผ",
+        "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "ะำพ้ะำพ้ืำด",
+        "column_type": "details",
+        "description": "ไดกไกห้ำหฟพื้",
+        "account_number": "ฟหดๆำฟเไหำพเ้",
+        "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "ะเะไฎฌ\"ฑฤ็ฎฑฤ\"",
+        "column_type": "details",
+        "description": "ฎฤโฎ\"ฤฌไ้",
+        "account_number": "ฎ\"๐ฌฮ\"ฤพฌ็ฺไ้ืิ",
+        "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "้ฟำกะ่้ำผกผ้",
+        "column_type": "details",
+        "description": "ำฟ้ำหผพิื",
+        "account_number": "ำพถ้ๆฟิฟำผพหื ่",
+        "credit_type": "เงินสด"
+    }
+]
