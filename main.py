@@ -12,55 +12,86 @@ except ImportError:
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("Account Management GUI") # Set a default size
-        self.root.geometry("1000x800")
+        self.root.title("☁️ Accounting Prog for Lazy People ☁️") # Set a default size
+        self.root.geometry("1200x900") # Increased size for better fit
+        self.root.config(bg="#F0F4FF") # Soft Blue-Lavender background
+
+        # --- Modern, Minimalist, Futuristic Style Setup ---
+        self.style = ttk.Style()
+        if "clam" in self.style.theme_names():
+            self.style.theme_use("clam")
+        
+        # --- Cute Blue & Purple Pastel Theme ---
+        self.style.configure(".", background="#F0F4FF", foreground="#605C88", font=("Mali", 10)) # Dark dusty purple text
+        self.style.configure("TButton", padding=8, relief="flat", background="#D6E0FF", borderwidth=0, focuscolor="#D6E0FF") # Pastel Blue
+        self.style.map("TButton", background=[("active", "#C2D3FF")], foreground=[("active", "#605C88")])
+        self.style.configure("Danger.TButton", foreground="#FFFFFF", background="#FFD1DC", font=("Mali", 10, "bold")) # Pastel Pink for danger
+        self.style.map("Danger.TButton", background=[("active", "#FFB6C1")])
+        self.style.configure("Header.TLabel", font=("Mali", 12, "bold"), background="#F0F4FF", foreground="#847BB9") # Purple header text
+        self.style.configure("Sub.TLabel", font=("Mali", 10, "bold"), background="#E3D7FF", foreground="#605C88", padding=5) # Pastel Purple sub label
+        self.style.configure("TCheckbutton", background="#F0F4FF", focuscolor="#F0F4FF")
+        self.style.map("TCheckbutton", background=[("active", "#F0F4FF")])
+        self.style.configure("TRadiobutton", background="#F0F4FF", focuscolor="#F0F4FF")
+        self.style.map("TRadiobutton", background=[("active", "#F0F4FF")])
+        self.style.configure("TLabelframe", background="#F0F4FF")
+        self.style.configure("TLabelframe.Label", font=("Mali", 10, "bold"), background="#F0F4FF", foreground="#847BB9")
+        self.style.configure("Card.TButton", background="#FFFFFF", padding=8, relief="flat") # White buttons for items
+        self.style.map("Card.TButton", background=[("active", "#F0F4FF")], foreground=[("active", "#605C88")])
 
         self.details_data = [] # Stores all the detail dictionaries
+        self.currently_displayed_detail = None # Keep track of the last detail clicked
 
         # --- Main Layout Frames ---
         self.main_frame = tk.Frame(root)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.main_frame.config(bg="#F0F4FF")
 
         self.header_frame = tk.Frame(self.main_frame)
         self.header_frame.pack(fill=tk.X, pady=(0, 5))
+        self.header_frame.config(bg="#F0F4FF")
 
         self.columns_container_frame = tk.Frame(self.main_frame)
         self.columns_container_frame.pack(fill=tk.BOTH, expand=True)
+        self.columns_container_frame.config(bg="#F0F4FF")
 
         self.add_button_frame = tk.Frame(self.main_frame)
         self.add_button_frame.pack(fill=tk.X, pady=(5, 0))
+        self.add_button_frame.config(bg="#F0F4FF")
 
         # Frame for display areas and control buttons
-        self.display_control_frame = tk.Frame(self.main_frame, bd=2, relief=tk.GROOVE)
+        self.display_control_frame = tk.Frame(self.main_frame, bd=0, highlightthickness=2, highlightbackground="#D0C4FF", highlightcolor="#D0C4FF") # Pastel purple border
         self.display_control_frame.pack(fill=tk.X, pady=(10, 0))
+        self.display_control_frame.config(bg="#F0F4FF")
 
         self.display_frame = tk.Frame(self.display_control_frame)
         self.display_frame.pack(fill=tk.X, pady=(10, 0))
-
+        self.display_frame.config(bg="#F0F4FF")
         # --- Header Labels for Columns ---
-        tk.Label(self.header_frame, text="รายละเอียด (Details)", font=("Arial", 12, "bold")).pack(side=tk.LEFT, expand=True)
-        tk.Label(self.header_frame, text="คำเชื่อม (Link)", font=("Arial", 12, "bold")).pack(side=tk.LEFT, expand=True)
-        tk.Label(self.header_frame, text="เดือน ปี (Month Year)", font=("Arial", 12, "bold")).pack(side=tk.LEFT, expand=True)
+        ttk.Label(self.header_frame, text="✨ รายละเอียด ✨", style="Header.TLabel").pack(side=tk.LEFT, expand=True)
+        ttk.Label(self.header_frame, text="☁️ คำเชื่อม ☁️", style="Header.TLabel").pack(side=tk.LEFT, expand=True)
+        ttk.Label(self.header_frame, text="❄️ เดือน ปี ❄️", style="Header.TLabel").pack(side=tk.LEFT, expand=True)
 
         # --- Columns (Scrollable) ---
         self.column_frames = {}
         column_names = ["details", "link", "month_year"]
+        column_colors = {"details": "#E6F0FF", "link": "#EBE3FF", "month_year": "#FFF5D1"} # Pastel Blue, Purple, Yellow
 
         for name in column_names:
-            col_frame = tk.Frame(self.columns_container_frame, bd=1, relief=tk.SUNKEN)
-            col_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2)
+            col_bg = column_colors[name]
+            col_frame = tk.Frame(self.columns_container_frame, bd=0, highlightthickness=2, highlightbackground="#D0C4FF") # Purple border
+            col_frame.config(bg=col_bg)
+            col_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5) # More padding between cute columns
             self.column_frames[name] = col_frame
 
-            canvas = tk.Canvas(col_frame)
-            scrollbar = tk.Scrollbar(col_frame, orient="vertical", command=canvas.yview)
-            scrollable_frame = tk.Frame(canvas)
-
+            canvas = tk.Canvas(col_frame, bg=col_bg, highlightthickness=0)
+            scrollable_frame = tk.Frame(canvas, bg=col_bg)
             scrollable_frame.bind(
                 "<Configure>",
                 lambda e, canvas=canvas: canvas.configure(
                     scrollregion=canvas.bbox("all")
                 )
             )
+            scrollbar = ttk.Scrollbar(col_frame, orient="vertical", command=canvas.yview)
 
             canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
             canvas.configure(yscrollcommand=scrollbar.set)
@@ -72,93 +103,118 @@ class App:
             setattr(self, f"{name}_inner_frame", scrollable_frame)
             setattr(self, f"{name}_canvas", canvas)
 
-        # --- Add Item Buttons for each column ---
-        tk.Button(self.add_button_frame, text="เพิ่มรายละเอียด (Details)",
-                  command=lambda: self.show_add_item_form('details')).pack(side=tk.LEFT, expand=True, padx=2)
-        tk.Button(self.add_button_frame, text="เพิ่มคำเชื่อม (Link)",
-                  command=lambda: self.show_add_item_form('link')).pack(side=tk.LEFT, expand=True, padx=2)
-        tk.Button(self.add_button_frame, text="เพิ่มเดือน ปี (Month Year)",
-                  command=lambda: self.show_add_item_form('month_year')).pack(side=tk.LEFT, expand=True, padx=2)
+        # --- Add Item Buttons for each column (using ttk.Button for modern look) ---
+        ttk.Button(self.add_button_frame, text="เพิ่มรายละเอียด (Details)",
+                   command=lambda: self.show_add_item_form('details')).pack(side=tk.LEFT, expand=True, padx=2)
+        ttk.Button(self.add_button_frame, text="เพิ่มคำเชื่อม (Link)",
+                   command=lambda: self.show_add_item_form('link')).pack(side=tk.LEFT, expand=True, padx=2)
+        ttk.Button(self.add_button_frame, text="เพิ่มเดือน ปี (Month Year)",
+                   command=lambda: self.show_add_item_form('month_year')).pack(side=tk.LEFT, expand=True, padx=2)
+
+        # --- Global Delete Button ---
+        self.delete_button_frame = tk.Frame(self.main_frame, bg="#F0F4FF")
+        self.delete_button_frame.pack(fill=tk.X, pady=(5, 0))
+        ttk.Button(self.delete_button_frame, text="ลบรายการที่เลือก (Delete Selected Items)",
+                   command=self.show_delete_selection_form, style='Danger.TButton').pack(pady=5)
 
         # --- Display Areas ---
         self.display_content_frame = tk.Frame(self.display_control_frame)
         self.display_content_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.display_content_frame.config(bg="#F0F4FF")
 
         # History for main display area
         self.display_history_states = []
         self.current_history_state_index = -1
 
         # Control buttons for display area
-        self.display_buttons_frame = tk.Frame(self.display_control_frame)
+        self.display_buttons_frame = tk.Frame(self.display_control_frame, bg="#F0F4FF")
         self.display_buttons_frame.pack(fill=tk.X, pady=(5, 0), padx=5)
-        tk.Button(self.display_buttons_frame, text="รีเซ็ต (Reset)", command=self.reset_display).pack(side=tk.LEFT, padx=2)
-        tk.Button(self.display_buttons_frame, text="ย้อนกลับ (Undo)", command=lambda: self.navigate_history(-1)).pack(side=tk.LEFT, padx=2) # Navigate back in history
-        tk.Button(self.display_buttons_frame, text="ทำซ้ำ (Redo)", command=lambda: self.navigate_history(1)).pack(side=tk.LEFT, padx=2) # Navigate forward in history
+        ttk.Button(self.display_buttons_frame, text="Reset", command=self.reset_display).pack(side=tk.LEFT, padx=2)
+        ttk.Button(self.display_buttons_frame, text="Undo", command=lambda: self.navigate_history(-1)).pack(side=tk.LEFT, padx=2) # Navigate back in history
+        ttk.Button(self.display_buttons_frame, text="Redo", command=lambda: self.navigate_history(1)).pack(side=tk.LEFT, padx=2) # Navigate forward in history
 
         # Main Display Area (copyable)
-        self.main_display_area_frame = tk.Frame(self.display_content_frame, bd=1, relief=tk.SUNKEN)
+        self.main_display_area_frame = tk.Frame(self.display_content_frame, bd=0, highlightthickness=2, highlightbackground="#D0C4FF")
+        self.main_display_area_frame.config(bg="#F0F4FF") 
         self.main_display_area_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
-        tk.Label(self.main_display_area_frame, text="ข้อมูลที่แสดงผล (Copyable):", anchor="w", font=("Arial", 10, "bold")).pack(fill=tk.X, pady=(0, 2))
+        ttk.Label(self.main_display_area_frame, text="ข้อมูลที่แสดงผล (Copyable):", style="Sub.TLabel", anchor="w").pack(fill=tk.X, pady=(0, 2))
 
-        self.display_text_area = tk.Text(self.main_display_area_frame, height=10, wrap=tk.WORD, state=tk.DISABLED, bg="lightgray")
+        self.display_text_area = tk.Text(self.main_display_area_frame, height=5, wrap=tk.WORD, state=tk.NORMAL, bd=0, font=("Mali", 10), padx=10, pady=10, fg="#605C88")
+        self.display_text_area.config(bg="#FFFFFF") # Pure white for text area
+        
+        # Adorable Welcome Text
+        self.display_text_area.insert("1.0", "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ ยินดีต้อนรับสู่โปรแกรมคนขี้เกียจ~ ☁️❄️\nกดปุ่มด้านบนเพื่อเริ่มเพิ่มข้อมูลได้เลย!")
+        self.display_text_area.config(state=tk.DISABLED)
+
         self.display_text_area.pack(fill=tk.BOTH, expand=True)
         self.display_text_area.bind("<Button-1>", self.copy_to_clipboard)
 
-        self.copied_message_label = tk.Label(self.main_display_area_frame, text="", fg="green")
+        self.copied_message_label = tk.Label(self.main_display_area_frame, text="", fg="#82C7A5", bg="#FFFFFF", font=("Mali", 9)) # Pastel green color, white bg
         self.copied_message_label.pack(fill=tk.X, pady=(2,0))
 
         # Side Display Area (non-copyable)
-        self.side_display_area_frame = tk.Frame(self.display_content_frame, width=250, bd=1, relief=tk.SUNKEN) # Adjusted width
+        self.side_display_area_frame = tk.Frame(self.display_content_frame, width=250, bd=0, highlightthickness=2, highlightbackground="#D0C4FF") 
         self.side_display_area_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(5, 0))
         self.side_display_area_frame.pack_propagate(False) # Prevent frame from resizing to content
 
-        tk.Label(self.side_display_area_frame, text="รายละเอียดเพิ่มเติม (Non-Copyable):", anchor="w", font=("Arial", 10, "bold")).pack(fill=tk.X, pady=(0, 2), padx=5)
+        ttk.Label(self.side_display_area_frame, text="รายละเอียดเพิ่มเติม (Non-Copyable):", style="Sub.TLabel", anchor="w").pack(fill=tk.X, pady=(0, 2), padx=5)
 
-        self.side_details_text = tk.Text(self.side_display_area_frame, height=10, wrap=tk.WORD, state=tk.DISABLED, bg="lightyellow")
+        self.side_details_text = tk.Text(self.side_display_area_frame, height=5, wrap=tk.WORD, state=tk.DISABLED, bd=0, font=("Mali", 10), padx=10, pady=10, fg="#605C88")
+        self.side_details_text.config(bg="#FFFFFF") # Pure white for text area
         self.side_details_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0,5))
 
-
+        # Initial population of columns (if any data exists from a loaded state, though not implemented yet)
+        self._clear_and_repopulate_columns()
+        
     def show_add_item_form(self, column_type):
         form_window = tk.Toplevel(self.root)
         form_window.title(f"เพิ่มรายการในคอลัมน์: {column_type.replace('_', ' ').title()}")
         form_window.transient(self.root) # Make it appear on top of the main window
         form_window.grab_set() # Make it modal
-        form_window.geometry("400x350" if column_type == 'details' else "400x150") # Adjust size based on fields
+        
+        # Calculate position to center the window
+        dialog_width = 400
+        dialog_height = 460 if column_type == 'details' else 200
+        self.root.update_idletasks()
+        x = self.root.winfo_rootx() + (self.root.winfo_width() // 2) - (dialog_width // 2)
+        y = self.root.winfo_rooty() + (self.root.winfo_height() // 2) - (dialog_height // 2)
+        form_window.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
 
+        form_window.config(bg="#F0F4FF") # Apply background color
         # Labels and Entry widgets
-        tk.Label(form_window, text="ชื่อปุ่ม (Button Name):").pack(pady=5)
-        button_name_entry = tk.Entry(form_window, width=40)
+        ttk.Label(form_window, text="ชื่อปุ่ม (Button Name):").pack(pady=5)
+        button_name_entry = ttk.Entry(form_window, width=40, font=("Mali", 10))
         button_name_entry.pack(pady=2)
 
-        tk.Label(form_window, text="รายละเอียด (Description):").pack(pady=5)
+        ttk.Label(form_window, text="รายละเอียด (Description):").pack(pady=5)
         description_entry = None
         account_entry = None
         credit_type_var = None
 
         if column_type == 'details':
-            description_entry = tk.Entry(form_window, width=40)
+            description_entry = ttk.Entry(form_window, width=40, font=("Mali", 10))
             description_entry.pack(pady=2)
 
-            tk.Label(form_window, text="เลขบัญชี (Account Number):").pack(pady=5)
-            account_entry = tk.Entry(form_window, width=40)
+            ttk.Label(form_window, text="เลขบัญชี (Account Number):").pack(pady=5)
+            account_entry = ttk.Entry(form_window, width=40, font=("Mali", 10))
             account_entry.pack(pady=2)
 
-            tk.Label(form_window, text="เครดิต (Credit Type):").pack(pady=5)
+            ttk.Label(form_window, text="เครดิต (Credit Type):").pack(pady=5)
             credit_type_var = tk.StringVar(form_window, value="เงินสด") # Default value
-            tk.Radiobutton(form_window, text="เงินสด (Cash)", variable=credit_type_var, value="เงินสด").pack(anchor=tk.W, padx=10)
-            tk.Radiobutton(form_window, text="เงินฝาก (Deposit)", variable=credit_type_var, value="เงินฝาก").pack(anchor=tk.W, padx=10)
-            tk.Radiobutton(form_window, text="อื่นๆ (Other)", variable=credit_type_var, value="อื่นๆ").pack(anchor=tk.W, padx=10)
+            ttk.Radiobutton(form_window, text="เงินสด (Cash)", variable=credit_type_var, value="เงินสด").pack(anchor=tk.W, padx=10)
+            ttk.Radiobutton(form_window, text="เงินฝาก (Deposit)", variable=credit_type_var, value="เงินฝาก").pack(anchor=tk.W, padx=10)
+            ttk.Radiobutton(form_window, text="อื่นๆ (Other)", variable=credit_type_var, value="อื่นๆ").pack(anchor=tk.W, padx=10)
         else:
             # For 'link' and 'month_year', the button name is the description, no separate description entry needed.
             # The "รายละเอียด (Description):" label is not packed for these types.
             pass
 
         # Save Button
-        save_button = tk.Button(form_window, text="บันทึก (Save)",
-                                command=lambda: self.save_item(form_window, column_type,
-                                                               button_name_entry, description_entry,
-                                                               account_entry, credit_type_var))
+        save_button = ttk.Button(form_window, text="บันทึก (Save)",
+                                 command=lambda: self.save_item(form_window, column_type,
+                                                                button_name_entry, description_entry,
+                                                                account_entry, credit_type_var))
         save_button.pack(pady=10)
 
         form_window.wait_window() # Wait for the form to close before continuing
@@ -184,25 +240,159 @@ class App:
 
         self.details_data.append(detail)
 
-        # Determine target frame and canvas based on column_type
-        target_frame = getattr(self, f"{column_type}_inner_frame")
-        target_canvas = getattr(self, f"{column_type}_canvas")
-
-        self.add_button_to_column(detail, target_frame, target_canvas)
+        self._clear_and_repopulate_columns() # Rebuild all columns after adding
         form_window.destroy()
 
     def add_button_to_column(self, detail, target_frame, target_canvas):
-        btn = tk.Button(target_frame, text=detail['button_name'],
+        col_bg = target_frame.cget("bg")
+        item_frame = tk.Frame(target_frame, bg=col_bg)
+        item_frame.pack(pady=4, padx=8, fill=tk.X)
+
+        btn = ttk.Button(item_frame, text=detail['button_name'],
                         command=lambda d=detail: self.on_detail_button_click(d),
-                        width=25, anchor="w") # Set a fixed width and anchor left
-        btn.pack(pady=2, padx=5, fill=tk.X)
+                        style="Card.TButton") # White cards inside pastel columns
+        btn.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         # Update the scroll region of the canvas
         target_canvas.update_idletasks() # Ensure widgets are drawn before calculating bbox
         target_canvas.config(scrollregion=target_canvas.bbox("all"))
 
+    def _clear_and_repopulate_columns(self):
+        """Clears all column frames and repopulates them based on self.details_data."""
+        for name in ["details", "link", "month_year"]:
+            inner_frame = getattr(self, f"{name}_inner_frame")
+            canvas = getattr(self, f"{name}_canvas")
+
+            # Clear existing widgets
+            for widget in inner_frame.winfo_children():
+                widget.destroy()
+
+            # Repopulate
+            for detail in self.details_data:
+                if detail['column_type'] == name:
+                    self.add_button_to_column(detail, inner_frame, canvas)
+
+            # Update scroll region after repopulating
+            canvas.update_idletasks()
+            canvas.config(scrollregion=canvas.bbox("all"))
+
+    def show_delete_selection_form(self):
+        delete_form_window = tk.Toplevel(self.root)
+        delete_form_window.title("เลือกรายการที่จะลบ (Select Items to Delete)")
+        delete_form_window.transient(self.root)
+        delete_form_window.grab_set()
+        
+        # Calculate position to center the window
+        dialog_width = 600
+        dialog_height = 700
+        self.root.update_idletasks()
+        x = self.root.winfo_rootx() + (self.root.winfo_width() // 2) - (dialog_width // 2)
+        y = self.root.winfo_rooty() + (self.root.winfo_height() // 2) - (dialog_height // 2)
+        delete_form_window.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+        delete_form_window.config(bg="#F0F4FF")
+
+        main_frame = tk.Frame(delete_form_window, bg="#F0F4FF")
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Scrollable area for checkboxes
+        canvas = tk.Canvas(main_frame, bg="#F0F4FF", highlightthickness=0)
+        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg="#F0F4FF")
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        self.delete_checkboxes = [] # Stores (BooleanVar, detail) tuples
+
+        # Group by column type
+        grouped_details = {
+            "details": [],
+            "link": [],
+            "month_year": []
+        }
+        for detail in self.details_data:
+            grouped_details[detail['column_type']].append(detail)
+
+        column_names_thai = {
+            "details": "รายละเอียด",
+            "link": "คำเชื่อม",
+            "month_year": "เดือน ปี"
+        }
+
+        for col_type, details_list in grouped_details.items():
+            if details_list:
+                # เปลี่ยนไปใช้ ttk.LabelFrame แทน tk ธรรมดา เพื่อให้รองรับ TLabelframe.Label padding ที่ตั้งค่าไว้
+                type_frame = ttk.LabelFrame(scrollable_frame, text=f"หมวดหมู่: {column_names_thai[col_type]}")
+                type_frame.pack(fill=tk.X, pady=5, padx=5)
+
+                # Check All in Type button
+                btn_frame = tk.Frame(type_frame, bg="#F0F4FF")
+                btn_frame.pack(fill=tk.X, pady=(0, 5))
+                ttk.Button(btn_frame, text=f"เลือกทั้งหมด",
+                           command=lambda ct=col_type: self._toggle_type_checkboxes(ct, True)).pack(side=tk.LEFT, padx=2, pady=2)
+                ttk.Button(btn_frame, text=f"ยกเลิกทั้งหมด",
+                           command=lambda ct=col_type: self._toggle_type_checkboxes(ct, False)).pack(side=tk.LEFT, padx=2, pady=2)
+
+                for detail in details_list:
+                    var = tk.BooleanVar(value=False)
+                    chk = ttk.Checkbutton(type_frame, text=detail['button_name'], variable=var)
+                    chk.pack(fill=tk.X, padx=10, pady=1)
+                    self.delete_checkboxes.append((var, detail))
+
+        # Control buttons at the bottom of the delete form
+        control_frame = tk.Frame(delete_form_window, bg="#F0F4FF")
+        control_frame.pack(fill=tk.X, pady=(10, 0))
+
+        ttk.Button(control_frame, text="เลือกทั้งหมด (Check All)", command=lambda: self._toggle_all_checkboxes(True)).pack(side=tk.LEFT, padx=5)
+        ttk.Button(control_frame, text="ยกเลิกทั้งหมด (Uncheck All)", command=lambda: self._toggle_all_checkboxes(False)).pack(side=tk.LEFT, padx=5)
+        ttk.Button(control_frame, text="ยืนยันการลบ (Confirm Delete)", command=lambda: self._confirm_delete_selected(delete_form_window), style='Danger.TButton').pack(side=tk.RIGHT, padx=5)
+        ttk.Button(control_frame, text="ยกเลิก (Cancel)", command=delete_form_window.destroy).pack(side=tk.RIGHT, padx=5)
+
+    def _toggle_all_checkboxes(self, state):
+        for var, _ in self.delete_checkboxes:
+            var.set(state)
+
+    def _toggle_type_checkboxes(self, column_type, state):
+        for var, detail in self.delete_checkboxes:
+            if detail['column_type'] == column_type:
+                var.set(state)
+
+    def _confirm_delete_selected(self, delete_form_window):
+        details_to_remove = []
+        for var, detail in self.delete_checkboxes:
+            if var.get():
+                details_to_remove.append(detail)
+
+        if not details_to_remove:
+            messagebox.showinfo("ไม่มีรายการ", "กรุณาเลือกรายการที่จะลบ")
+            return
+
+        if messagebox.askyesno("ยืนยันการลบ", f"คุณแน่ใจหรือไม่ที่จะลบ {len(details_to_remove)} รายการ?"):
+            for detail_to_delete in details_to_remove:
+                if detail_to_delete in self.details_data:
+                    self.details_data.remove(detail_to_delete)
+                    # If the deleted item was the one currently displayed, clear the display
+                    if self.currently_displayed_detail == detail_to_delete:
+                        self.reset_display()
+
+            self._clear_and_repopulate_columns() # Rebuild all columns after deletion
+            delete_form_window.destroy()
+            messagebox.showinfo("ลบสำเร็จ", f"ลบ {len(details_to_remove)} รายการเรียบร้อยแล้ว")
+        else:
+            messagebox.showinfo("ยกเลิก", "การลบถูกยกเลิก")
+
     def on_detail_button_click(self, detail):
         # Get current content of main display area
+        self.currently_displayed_detail = detail # Store the currently displayed detail
+
         current_main_content = self.display_text_area.get("1.0", tk.END).strip()
 
         # Determine the text to append to the main display
@@ -239,6 +429,11 @@ class App:
                         f"{'-'*30}\n"
             self.side_details_text.insert(tk.END, side_text)
             self.side_details_text.config(state=tk.DISABLED)
+        else:
+            # Clear side display if a non-details item is clicked
+            self.side_details_text.config(state=tk.NORMAL)
+            self.side_details_text.delete("1.0", tk.END)
+            self.side_details_text.config(state=tk.DISABLED)
 
     def reset_display(self):
         """Clears both display areas and resets the history."""
@@ -252,6 +447,7 @@ class App:
 
         self.display_history_states = []
         self.current_history_state_index = -1
+        self.currently_displayed_detail = None # Clear the reference
         self.copied_message_label.config(text="") # Clear copied message
 
     def navigate_history(self, direction):
@@ -268,6 +464,12 @@ class App:
             self.display_text_area.see(tk.END)
             self.display_text_area.config(state=tk.DISABLED)
 
+            # When navigating history, we don't have a specific 'detail' object
+            # to update self.currently_displayed_detail or the side display.
+            # For simplicity, clear the side display when navigating history.
+            self.side_details_text.config(state=tk.NORMAL)
+            self.side_details_text.delete("1.0", tk.END)
+            self.side_details_text.config(state=tk.DISABLED)
             self.copied_message_label.config(text="") # Clear copied message
         elif new_index < 0 and self.current_history_state_index != -1: # Go back to empty state
             self.reset_display()
@@ -277,10 +479,10 @@ class App:
             text_to_copy = self.display_text_area.get("1.0", tk.END).strip()
             if text_to_copy:
                 pyperclip.copy(text_to_copy)
-                self.copied_message_label.config(text="คัดลอกไปยังคลิปบอร์ดแล้ว!", fg="green")
+                self.copied_message_label.config(text="คัดลอกไปยังคลิปบอร์ดแล้ว!", fg="#FF8C94") # Cute success color
                 self.root.after(2000, self.clear_copied_message) # Clear message after 2 seconds
         else:
-            self.copied_message_label.config(text="ไม่สามารถคัดลอกได้: pyperclip ไม่ได้ติดตั้ง", fg="red")
+            self.copied_message_label.config(text="ไม่สามารถคัดลอกได้: pyperclip ไม่ได้ติดตั้ง", fg="#FF6B77")
 
     def clear_copied_message(self):
         self.copied_message_label.config(text="")
