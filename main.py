@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import pyperclip
 import json
 import os
@@ -67,7 +67,7 @@ class App:
             }
         }
         self.load_settings()
-        self.data_file = "account_data.json"
+        self.data_file = self.settings.get("data_file", "account_data.json")
         self.details_data = [] # Stores all the detail dictionaries
         self.load_data() # โหลดข้อมูลตอนเริ่มต้นโปรแกรม
         self.currently_displayed_detail = None # Keep track of the last detail clicked
@@ -90,6 +90,15 @@ class App:
 
         self.theme_btn = ttk.Button(self.search_frame, text="🌙 Dark Mode", command=self.toggle_theme)
         self.theme_btn.pack(side=tk.RIGHT, padx=5)
+        
+        self.db_btn = ttk.Button(self.search_frame, text="📂 เลือกฐานข้อมูล", command=self.select_data_file)
+        self.db_btn.pack(side=tk.RIGHT, padx=5)
+        
+        self.new_db_btn = ttk.Button(self.search_frame, text="➕ สร้างฐานข้อมูล", command=self.create_data_file)
+        self.new_db_btn.pack(side=tk.RIGHT, padx=5)
+        
+        self.del_db_btn = ttk.Button(self.search_frame, text="🗑️ ลบฐานข้อมูล", command=self.delete_data_file)
+        self.del_db_btn.pack(side=tk.RIGHT, padx=5)
 
         self.header_frame = tk.Frame(self.main_frame)
         self.header_frame.pack(fill=tk.X, pady=(0, 5))
@@ -130,15 +139,9 @@ class App:
 
             canvas = tk.Canvas(col_frame, bg=col_bg, highlightthickness=0)
             scrollable_frame = tk.Frame(canvas, bg=col_bg)
-            scrollable_frame.bind(
-                "<Configure>",
-                lambda e, canvas=canvas: canvas.configure(
-                    scrollregion=canvas.bbox("all")
-                )
-            )
             scrollbar = ttk.Scrollbar(col_frame, orient="vertical", command=canvas.yview)
 
-            canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+            canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
             canvas.configure(yscrollcommand=scrollbar.set)
 
             canvas.pack(side="left", fill="both", expand=True)
@@ -147,6 +150,9 @@ class App:
             # Store the inner scrollable frame and canvas for adding widgets
             setattr(self, f"{name}_inner_frame", scrollable_frame)
             setattr(self, f"{name}_canvas", canvas)
+            setattr(self, f"{name}_canvas_window", canvas_window)
+            
+            canvas.bind("<Configure>", lambda e, n=name: self._on_canvas_configure(e, n))
 
         # --- Add Item Buttons for each column (using ttk.Button for modern look) ---
         ttk.Button(self.add_button_frame, text="เพิ่มรายละเอียด (Details)",
@@ -212,6 +218,11 @@ class App:
         # Apply initial theme and populate columns
         self.apply_theme()
         
+        # Bind global mouse wheel for scrolling on hover
+        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.root.bind_all("<Button-4>", self._on_mousewheel)
+        self.root.bind_all("<Button-5>", self._on_mousewheel)
+        
     def get_resource_path(self, relative_path):
         """ฟังก์ชันสำหรับหาตำแหน่งไฟล์ รองรับทั้งตอนเป็นโค้ด .py และตอนเป็นโปรแกรม .exe"""
         if getattr(sys, 'frozen', False):
@@ -220,8 +231,83 @@ class App:
             base_path = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(base_path, relative_path)
 
+    def _on_mousewheel(self, event):
+        try:
+            widget = event.widget.winfo_containing(event.x_root, event.y_root)
+        except KeyError:
+            return
+            
+        if widget:
+            # ค้นหาว่าตำแหน่งเมาส์อยู่บน Canvas หรือส่วนประกอบใน Canvas ไหน (รองรับทั้งหน้าหลักและหน้าต่างลบรายการ)
+            canvas = None
+            if isinstance(widget, tk.Canvas):
+                canvas = widget
+            else:
+                parent = widget.master
+                while parent:
+                    if isinstance(parent, tk.Canvas):
+                        canvas = parent
+                        break
+                    parent = parent.master
+            
+            if canvas:
+                bbox = canvas.bbox("all")
+                if bbox:
+                    content_height = bbox[3] - bbox[1]
+                    # ป้องกันการสกรอลล์หากเนื้อหาน้อยกว่าหรือเท่ากับความสูงของจอ (แก้ปัญหาขอบบนเกิน)
+                    if canvas.winfo_height() >= content_height:
+                        return 
+                        
+                if hasattr(event, 'delta') and event.delta:
+                    if sys.platform == 'darwin':
+                        canvas.yview_scroll(int(-1 * event.delta), "units")
+                    else:
+                        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+                elif hasattr(event, 'num'):
+                    if event.num == 4:
+                        canvas.yview_scroll(-1, "units")
+                    elif event.num == 5:
+                        canvas.yview_scroll(1, "units")
+                return
+
+    def _on_canvas_configure(self, event, col_name):
+        canvas = getattr(self, f"{col_name}_canvas")
+        inner_frame = getattr(self, f"{col_name}_inner_frame")
+        canvas_window = getattr(self, f"{col_name}_canvas_window")
+        
+        canvas.itemconfig(canvas_window, width=event.width)
+        self._reflow_column(inner_frame, event.width)
+        
+        # ปรับความสูงพื้นที่ลากขั้นต่ำให้เท่ากับ Canvas เสมอ
+        bbox = canvas.bbox("all")
+        if bbox:
+            scroll_h = max(bbox[3], event.height)
+            canvas.config(scrollregion=(0, 0, bbox[2], scroll_h))
+
+    def _reflow_column(self, inner_frame, max_width):
+        x = 5
+        y = 5
+        max_row_height = 0
+        safe_width = max_width - 10
+        
+        for child in inner_frame.winfo_children():
+            w = child.winfo_reqwidth()
+            h = child.winfo_reqheight()
+            
+            if x + w > safe_width and x > 5:
+                x = 5
+                y += max_row_height + 5
+                max_row_height = 0
+                
+            child.place(x=x, y=y)
+            x += w + 5
+            max_row_height = max(max_row_height, h)
+            
+        inner_frame.configure(width=max_width, height=y + max_row_height + 5)
+
     def load_data(self):
         """โหลดข้อมูลจากไฟล์ JSON"""
+        self.details_data = [] # เคลียร์ข้อมูลเดิมก่อนโหลดใหม่
         if os.path.exists(self.data_file):
             try:
                 with open(self.data_file, 'r', encoding='utf-8') as f:
@@ -238,7 +324,7 @@ class App:
             print(f"เกิดข้อผิดพลาดในการบันทึกข้อมูล: {e}")
 
     def load_settings(self):
-        self.settings = {"theme": "pastel"}
+        self.settings = {"theme": "pastel", "data_file": "account_data.json"}
         if os.path.exists("settings.json"):
             try:
                 with open("settings.json", "r", encoding="utf-8") as f:
@@ -252,6 +338,60 @@ class App:
                 json.dump(self.settings, f)
         except:
             pass
+
+    def select_data_file(self):
+        """เปิดหน้าต่างเลือกไฟล์ฐานข้อมูล"""
+        filename = filedialog.askopenfilename(
+            title="เลือกไฟล์ฐานข้อมูล (JSON)",
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        if filename:
+            self.data_file = filename
+            self.settings["data_file"] = filename
+            self.save_settings() # บันทึกการตั้งค่าเผื่อเปิดครั้งหน้า
+            self.load_data() # โหลดข้อมูลใหม่
+            self._clear_and_repopulate_columns() # อัปเดตหน้าจอ
+            messagebox.showinfo("สำเร็จ", f"เปลี่ยนไฟล์ฐานข้อมูลเป็น:\n{filename}")
+
+    def create_data_file(self):
+        """เปิดหน้าต่างสร้างไฟล์ฐานข้อมูลใหม่"""
+        filename = filedialog.asksaveasfilename(
+            title="สร้างไฟล์ฐานข้อมูลใหม่ (JSON)",
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        if filename:
+            try:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    json.dump([], f, ensure_ascii=False, indent=4) # สร้างไฟล์โครงสร้างอาร์เรย์ว่าง
+                self.data_file = filename
+                self.settings["data_file"] = filename
+                self.save_settings() # บันทึกการตั้งค่า
+                self.load_data() # โหลดข้อมูลใหม่ที่เพิ่งสร้าง
+                self._clear_and_repopulate_columns() # รีเฟรชหน้าจอให้ว่างเปล่า
+                messagebox.showinfo("สำเร็จ", f"สร้างและสลับไปใช้ฐานข้อมูลใหม่:\n{filename}")
+            except Exception as e:
+                messagebox.showerror("ข้อผิดพลาด", f"ไม่สามารถสร้างไฟล์ได้:\n{e}")
+
+    def delete_data_file(self):
+        """เปิดหน้าต่างเลือกไฟล์ฐานข้อมูลเพื่อทำการลบ"""
+        filename = filedialog.askopenfilename(
+            title="เลือกไฟล์ฐานข้อมูล (JSON) ที่ต้องการลบ",
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        if filename:
+            if os.path.abspath(filename) == os.path.abspath(self.data_file):
+                messagebox.showerror("ข้อผิดพลาด", "ไม่สามารถลบไฟล์ฐานข้อมูลที่กำลังใช้งานอยู่ได้\nกรุณาสลับไปใช้ไฟล์อื่นก่อนทำการลบ")
+                return
+            
+            if messagebox.askyesno("ยืนยันการลบ", f"คุณแน่ใจหรือไม่ที่จะลบไฟล์นี้ถาวร?\n{filename}"):
+                try:
+                    os.remove(filename)
+                    messagebox.showinfo("สำเร็จ", f"ลบไฟล์ฐานข้อมูลเรียบร้อยแล้ว:\n{filename}")
+                except Exception as e:
+                    messagebox.showerror("ข้อผิดพลาด", f"เกิดข้อผิดพลาดในการลบไฟล์:\n{e}")
 
     def toggle_theme(self):
         self.settings["theme"] = "dark" if self.settings.get("theme", "pastel") == "pastel" else "pastel"
@@ -475,7 +615,7 @@ class App:
     def add_button_to_column(self, detail, target_frame, target_canvas):
         col_bg = target_frame.cget("bg")
         item_frame = tk.Frame(target_frame, bg=col_bg)
-        item_frame.pack(pady=4, padx=8, fill=tk.X)
+        # item_frame is placed dynamically using _reflow_column later
 
         th = self.themes[self.settings.get("theme", "pastel")]
         is_searching = bool(self.search_var.get().strip())
@@ -504,10 +644,6 @@ class App:
         else:
             drag_handle.bind("<ButtonPress-1>", lambda e: messagebox.showinfo("แจ้งเตือน", "กรุณาลบคำค้นหาก่อนทำการลากสลับตำแหน่ง"))
 
-        # Update the scroll region of the canvas
-        target_canvas.update_idletasks() # Ensure widgets are drawn before calculating bbox
-        target_canvas.config(scrollregion=target_canvas.bbox("all"))
-
     def on_search(self, event=None):
         self._clear_and_repopulate_columns()
 
@@ -533,9 +669,22 @@ class App:
 
                     self.add_button_to_column(detail, inner_frame, canvas)
 
-            # Update scroll region after repopulating
+            # Reflow layout based on current canvas width
             canvas.update_idletasks()
-            canvas.config(scrollregion=canvas.bbox("all"))
+            canvas_width = canvas.winfo_width()
+            canvas_height = canvas.winfo_height()
+            if canvas_width <= 1:
+                canvas_width = 350 # Fallback width if not drawn yet
+            if canvas_height <= 1:
+                canvas_height = 500 # Fallback height
+            self._reflow_column(inner_frame, canvas_width)
+
+            # Update scroll region after repopulating and reflowing
+            canvas.update_idletasks()
+            bbox = canvas.bbox("all")
+            if bbox:
+                scroll_h = max(bbox[3], canvas_height)
+                canvas.config(scrollregion=(0, 0, bbox[2], scroll_h))
 
     def start_drag(self, event, detail, target_frame):
         """เริ่มการลาก (Drag)"""
@@ -563,15 +712,28 @@ class App:
             self.drag_window.destroy()
             self.drag_window = None
 
-        # คำนวณหาตำแหน่งแกน Y ที่เมาส์ปล่อยลงมาเทียบกับกรอบแสดงผลด้านใน
+        # คำนวณหาตำแหน่งที่เมาส์ปล่อยลงมาเทียบกับกรอบแสดงผลด้านใน
+        x_relative = target_frame.winfo_pointerx() - target_frame.winfo_rootx()
         y_relative = target_frame.winfo_pointery() - target_frame.winfo_rooty()
+        
         children = target_frame.winfo_children()
         drop_index = len(children)
         
         for i, child in enumerate(children):
-            if y_relative < child.winfo_y() + (child.winfo_height() / 2):
+            cy = child.winfo_y()
+            ch = child.winfo_reqheight()
+            cx = child.winfo_x()
+            cw = child.winfo_reqwidth()
+            
+            # ถ้าเมาส์อยู่เหนือแถวนี้
+            if y_relative < cy:
                 drop_index = i
                 break
+            # ถ้าเมาส์อยู่ในแถวเดียวกัน เช็คแนวแกน X
+            if cy <= y_relative <= cy + ch:
+                if x_relative < cx + (cw / 2):
+                    drop_index = i
+                    break
 
         col_type = detail['column_type']
         col_items = [d for d in self.details_data if d['column_type'] == col_type]

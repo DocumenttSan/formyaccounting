@@ -1,30 +1,148 @@
 [
     {
-        "button_name": "้ะพด่ทาีมท่กทม่",
+        "button_name": "ค่า",
+        "column_type": "link",
+        "description": "ค่า"
+    },
+    {
+        "button_name": "สำนักงาน",
+        "column_type": "link",
+        "description": "สำนักงาน"
+    },
+    {
+        "button_name": "คอมพิวเตอร์",
+        "column_type": "link",
+        "description": "คอมพิวเตอร์"
+    },
+    {
+        "button_name": "และ",
+        "column_type": "link",
+        "description": "และ"
+    },
+    {
+        "button_name": "ค่าน้ำมัน",
         "column_type": "details",
-        "description": "ทพดัมทปดพทป",
-        "account_number": "ืทัพทหพกทพผ",
+        "description": "ค่าน้ำมัน",
+        "account_number": "5200-10",
         "credit_type": "เงินสด"
     },
     {
-        "button_name": "ะำพ้ะำพ้ืำด",
+        "button_name": "จ่ายเงินเดือน",
         "column_type": "details",
-        "description": "ไดกไกห้ำหฟพื้",
-        "account_number": "ฟหดๆำฟเไหำพเ้",
+        "description": "จ่ายเงินเดือน",
+        "account_number": "5310-01",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "หัก ณ ที่จ่ายเงินเดือน",
+        "column_type": "details",
+        "description": "หัก ณ ที่จ่าย เงินเดือนกรรมการ",
+        "account_number": "2132-01",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่าทางด่วน",
+        "column_type": "details",
+        "description": "ค่าทางด่วน",
+        "account_number": "5200-11",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่าไปรษณีย์",
+        "column_type": "details",
+        "description": "ค่าไปรษณีย์",
+        "account_number": "5330-04",
         "credit_type": "เงินสด"
     },
     {
-        "button_name": "ะเะไฎฌ\"ฑฤ็ฎฑฤ\"",
+        "button_name": "ค่าบริการ",
         "column_type": "details",
-        "description": "ฎฤโฎ\"ฤฌไ้",
-        "account_number": "ฎ\"๐ฌฮ\"ฤพฌ็ฺไ้ืิ",
+        "description": "ค่าบริการ",
+        "account_number": "5310-05",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "อะไหล่คอม",
+        "column_type": "details",
+        "description": "ค่าอะไหล่คอมพิวเตอร์",
+        "account_number": "5320-01",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่าอุปกรณ์",
+        "column_type": "details",
+        "description": "ค่าอุปกรณ์",
+        "account_number": "5320-03",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่ารับรอง",
+        "column_type": "details",
+        "description": "ค่ารับรอง",
+        "account_number": "5200-06",
         "credit_type": "เงินสด"
     },
     {
-        "button_name": "้ฟำกะ่้ำผกผ้",
+        "button_name": "ค่าเช่า",
         "column_type": "details",
-        "description": "ำฟ้ำหผพิื",
-        "account_number": "ำพถ้ๆฟิฟำผพหื ่",
+        "description": "ค่าเช่า",
+        "account_number": "",
         "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "ค่าโฆษณา",
+        "column_type": "details",
+        "description": "ค่าโฆษณา",
+        "account_number": "5200-02",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่าซ่อม+ปรับปรุง",
+        "column_type": "details",
+        "description": "ค่าซ่อมแซมและปรับปรุงสำนักงาน",
+        "account_number": "5320-01",
+        "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "วัสดุสำนักงาน",
+        "column_type": "details",
+        "description": "วัสดุสำนักงาน",
+        "account_number": "5320-01",
+        "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "เงินยืมกรรมการ",
+        "column_type": "details",
+        "description": "เงินยืมกรรมการ",
+        "account_number": "2138-00",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่าสอบบัญชี",
+        "column_type": "details",
+        "description": "ค่าสอบบัญชี",
+        "account_number": "5360-05",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่าบริการทำบัญชี",
+        "column_type": "details",
+        "description": "ค่าบริการทำบัญชี",
+        "account_number": "5360-11",
+        "credit_type": "เงินฝาก"
+    },
+    {
+        "button_name": "ค่ายา",
+        "column_type": "details",
+        "description": "ค่ายา",
+        "account_number": "5310-11",
+        "credit_type": "เงินสด"
+    },
+    {
+        "button_name": "หัก ณ ที่จ่ายบริการ",
+        "column_type": "details",
+        "description": "หัก ณ ที่จ่ายบริการ",
+        "account_number": "2132-03",
+        "credit_type": "เงินฝาก"
     }
 ]
